@@ -140,9 +140,24 @@ SELECT * FROM `users` WHERE `first_name` = "Jesus" AND `second_name` = "Lowe"
 However, if we try to use only `second_name` in our query, the index will not be used as it is not the leftmost column in our index.
 This is because the index is built on the first column (`first_name`), therefore
 order of columns in the index **DOES** matter. We can imagine it in form of a table
-//TODO
+
+| Country | Person |
+| --- | --- |
+| Ukraine | John; Dan; Marc |
+| USA | Kate, Castle, Brown, Obama |
+
+| Person | Country |
+| --- | --- |
+| John | Ukraine |
+| Dan | Ukraine |
+| Marc | Ukraine |
+| Kate | USA |
+| Castle | USA |
+| Brown | USA |
+| Obama | USA |
+
 As a rule of thumb, you should put the most selective column first (the column with the most unique values) 
-so the first column in the index would discard the most number of rows.
+so the first column in the index would discard the most number of rows. However, take your queries into account first.
 
 
 > In my case my table has more unique `first_name` values than `second_name` values, so I put `first_name` first.  
@@ -203,7 +218,7 @@ WHERE `first_name` = "Jesus" OR `second_name` = "Lowe"
 MySQL won't use any index, however
 if we rewrite the query to this:
 ```sql
-EXPLAIN SELECT * FROM `users`
+SELECT * FROM `users`
 WHERE `first_name` = "Jesus"
 UNION
 SELECT * FROM `users`
