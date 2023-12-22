@@ -1,6 +1,6 @@
 Доповідь підготував:
 
-студент 2-го курсу, групи ІМ-21 Сірик Максим [Email](erotourtes@gmail.com), [Telegram](https:/t.me/mabooled)
+студент 2-го курсу, групи ІМ-21 Сірик Максим [Email](mailto:erotourtes@gmail.com), [Telegram](https://t.me/mabooled)
 
 Керівник  
 доцент кафедри ОТ ФІОТ, к.т.н., доцент Андрій БОЛДАК  
@@ -67,6 +67,8 @@ The most important columns are `type` and `key`.
 > Lesson: Always use `PRIMARY KEY` in your tables and keep it small.  
 > [For more info](https://planetscale.com/blog/how-read-mysql-explains)
 
+---
+
 ### Full Table Scan
 
 Let's find out if we have `Jesus` in our database.
@@ -80,6 +82,8 @@ WHERE `first_name` = "Jesus";
 | 1 | SIMPLE | users | NULL | <ins>ALL</ins> | NULL | NULL | NULL | NULL | <ins>9684</ins> | 10.00 | Using where |
 
 Note that `type` is `ALL` and `key` is `NULL`. It means that MySQL will scan all rows in the table to find the matching rows. 
+
+---
 
 ### Creating Indexes
 Before creating indexes, we need to know what columns we will use in our queries.
@@ -97,6 +101,8 @@ You can check existing indexes with:
 SHOW INDEXES IN `users`;
 ```
 
+---
+
 ### Column Indexes
 #### Syntax
 ```sql
@@ -108,7 +114,7 @@ CREATE INDEX idx_first_name ON `users` (`first_name`);
 > [For more info](https://dev.mysql.com/doc/refman/8.0/en/mysql-indexes.html)
 
 #### Example
-Let's execute the query again (with the created index):
+Let's execute the query again (with the index from [syntax section](#syntax)):
 ```sql
 EXPLAIN SELECT * 
 FROM `users` 
@@ -118,8 +124,11 @@ WHERE `first_name` = "Jesus";
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 1 | SIMPLE | users | NULL | <ins>ref</ins> | idx_user_name | idx_name | 222 | const | <ins>7</ins> | 100.00 | NULL |
 
-Take a look at the `type` and `key` columns.
-The `EXPLAIN` shows us that row interaction came from 9684 to 7 (Because I have 7 Jesus in my database)!
+Take a look at the `type` and `key` columns.  
+
+Also, the `EXPLAIN` shows us that row interaction came from 9684 to 7 (Because I have 7 Jesus in my database)!
+
+---
 
 ### Composite Indexes
 #### Syntax
@@ -129,7 +138,7 @@ CREATE INDEX idx_first_name_second_name ON `users` (`first_name`, `second_name`)
 ```
 
 #### Example
-Let's consider this query (with created composite index):
+Let's consider this query (with the index from [syntax section](#syntax-1)):
 ```sql
 SELECT * FROM `users` WHERE `first_name` = "Jesus" AND `second_name` = "Lowe"
 ```
@@ -166,6 +175,8 @@ SELECT  COUNT(DISTINCT first_name) FROM `users`;
 SELECT  COUNT(DISTINCT second_name) FROM `users`;
 ```
 
+---
+
 ### Full-text Indexes
 #### Syntax
 ```sql
@@ -196,7 +207,7 @@ WHERE content LIKE "%business%";
 
 In my case `cost` is `2043`
 
-Now let's create a full-text index and check the cost again.
+Now let's create a [full-text index](#syntax-2) and check the cost again.
 ```sql
 EXPLAIN ANALYZE SELECT * FROM posts
 WHERE MATCH(content) AGAINST("business")
@@ -204,6 +215,8 @@ WHERE MATCH(content) AGAINST("business")
 The cost dropped to `1`!
 
 > Note: If we run `AGAINST ("business money")` it will find posts that contain either `business` or `money` or both.
+
+---
 
 ## Conclusion
 1. It is very important to use indexes with caution.
