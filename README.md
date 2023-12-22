@@ -11,27 +11,28 @@
 
 
 ## Performance in SQL (MySQL)
-To start with, we need to create a database and fill it with data. 
-Follow this steps:
+First, we need to create a database and fill it with data. 
+Follow these steps:
 1. navigate to the `sql/schema.sql`
 2. run the script in your database
 3. navigate to the `src/`
 4. add `.local.env` with the content of `.env` file
 5. run `python main.py` to fill the database with random data (you can change the number of rows in the `main.py` file)
+> install python dependencies `pip install -r requirements.txt`
 
 The database is ready to use. Now you can run the queries.
 ![image](./public/state.png)
 
 
 ## Indexes
-Let's start with the indexes.
-Index is a data structure that improves the speed of data retrieval operations on a database table 
+Let's start with the definition.
+An index is a data structure that improves the speed of data retrieval operations on a database table 
 at the cost of additional writes and storage space to maintain the index data structure. 
 
 Indexes are used to quickly locate data without having to search every row in a database table 
 every time a database table is accessed. 
 Indexes can be created using one or more columns of a database table, 
-providing the basis for both rapid random lookups and efficient access of ordered records.
+providing the basis for both rapid random lookups and efficient access to ordered records.
 
 ### Indexes in MySQL
 MySQL has several index types:
@@ -43,9 +44,9 @@ MySQL has several index types:
   - Primary key index
   - Secondary index
   - Unique index (secondary index with unique values)
-  - Spatial index (for gemoetry data types that are NOT NULL)
+  - Spatial index (for geometry data types that are NOT NULL)
   - FULLTEXT index (full-text search)
-  - Desending index (keys stored in descending order)
+  - Descending index (keys stored in descending order)
 
 But how we can determine whether an index was used or not?
 We can use `EXPLAIN` statement to get information about how MySQL executes a query.
@@ -79,7 +80,6 @@ WHERE `first_name` = "Jesus";
 | 1 | SIMPLE | users | NULL | <ins>ALL</ins> | NULL | NULL | NULL | NULL | <ins>9684</ins> | 10.00 | Using where |
 
 Note that `type` is `ALL` and `key` is `NULL`. It means that MySQL will scan all rows in the table to find the matching rows. 
-(the explain shows us that rows came from 1 to 9684)
 
 ### Creating Indexes
 Before creating indexes, we need to know what columns we will use in our queries.
@@ -87,11 +87,12 @@ Don't blindly create indexes on every column in your table.
 
 Before creating an index, you need to consider the following:
 - Indexes are stored in the memory. So, the more indexes you have, the more memory you need.
-- Indexes are updated on every insert, update and delete. So, the more indexes you have, the slower your queries will be.
+- Indexes are updated on every insert, update, and delete. So, the more indexes you have, the slower your queries will be.
 - Indexes can be used only on the columns that are used in the query. So, if you have an index on the `name` column,
 but you are searching by `email`, the index will not be used.
+- Duplicated indexes
 
-Check existing indexes:
+You can check existing indexes with:
 ```sql
 SHOW INDEXES IN `users`;
 ```
@@ -103,10 +104,11 @@ SHOW INDEXES IN `users`;
 CREATE INDEX idx_first_name ON `users` (`first_name`);
 ```
 
-We can use column index in `WHERE`, `ORDER BY` and `GROUP BY` clauses; `MIN()` and `MAX()` functions.
+> We can use column index in `WHERE`, `ORDER BY`, and `GROUP BY` clauses; `MIN()` and `MAX()` functions.  
+> [For more info](https://dev.mysql.com/doc/refman/8.0/en/mysql-indexes.html)
 
 #### Example
-Let's execute the query again (with created index):
+Let's execute the query again (with the created index):
 ```sql
 EXPLAIN SELECT * 
 FROM `users` 
@@ -117,6 +119,7 @@ WHERE `first_name` = "Jesus";
 | 1 | SIMPLE | users | NULL | <ins>ref</ins> | idx_user_name | idx_name | 222 | const | <ins>7</ins> | 100.00 | NULL |
 
 Take a look at the `type` and `key` columns.
+The `EXPLAIN` shows us that row interaction came from 9684 to 7 (Because I have 7 Jesus in my database)!
 
 ### Composite Indexes
 #### Syntax
@@ -134,15 +137,16 @@ SELECT * FROM `users` WHERE `first_name` = "Jesus" AND `second_name` = "Lowe"
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 1 | SIMPLE | users | NULL | **ref** | idx_first_name_second_name | idx_first_name_second_name | 444 | const,const | **1** | 100.00 | NULL |
 
-However if we try to use only `second_name` in our query, the index will not be used as it is not leftmost colums in our index.
+However, if we try to use only `second_name` in our query, the index will not be used as it is not the leftmost column in our index.
 This is because the index is built on the first column (`first_name`), therefore
-order of columns in the index **DOES** matter.  
+order of columns in the index **DOES** matter. We can imagine it in form of a table
+//TODO
 As a rule of thumb, you should put the most selective column first (the column with the most unique values) 
 so the first column in the index would discard the most number of rows.
 
 
 > In my case my table has more unique `first_name` values than `second_name` values, so I put `first_name` first.  
-> ```sql
+```sql
 SELECT  COUNT(DISTINCT first_name) FROM `users`;
 SELECT  COUNT(DISTINCT second_name) FROM `users`;
 ```
@@ -168,36 +172,36 @@ WHERE content LIKE "%business%";
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 1 | SIMPLE | posts | NULL | **ALL** | NULL | NULL | NULL | NULL | **19705** | 11.11 | Using where |
 
-Let's find out cost of the query:
+Let's find out the cost of the query:
 ```sql
 EXPLAIN ANALYZE SELECT * FROM posts
 WHERE content LIKE "%business%";
 ```
-> Note: `ANALYZE` is not a part of `EXPLAIN` statement. It is a separate statement.
+> Note: `ANALYZE` is not a part of the `EXPLAIN` statement. It is a separate statement.
 
 In my case `cost` is `2043`
 
 Now let's create a full-text index and check the cost again.
 ```sql
-EXPLAIN ANALYZE SELECT * FROM performance.posts
+EXPLAIN ANALYZE SELECT * FROM posts
 WHERE MATCH(content) AGAINST("business")
 ```
 The cost dropped to `1`!
 
-> Note: If we run `AGAINST ("business money")` it will find posts that contains either `business` or `money` or both.
+> Note: If we run `AGAINST ("business money")` it will find posts that contain either `business` or `money` or both.
 
 ## Conclusion
-It is very important to use indexes with caution. 
-Covering indexes (which entirely cover a query) are better then multiple single colums indexes.
+1. It is very important to use indexes with caution.
+1. Covering indexes (which entirely cover a query) are better than multiple single-column indexes.
 
-It is important to write queries that use indexes.
+1. It is important to write queries that use indexes.
 For example, if you have a query like this:
 ```sql
 EXPLAIN SELECT * FROM `users`
 WHERE `first_name` = "Jesus" OR `second_name` = "Lowe"
 ```
-In this query MySQL won't use any index, however
-if we rewrite the query like this:
+MySQL won't use any index, however
+if we rewrite the query to this:
 ```sql
 EXPLAIN SELECT * FROM `users`
 WHERE `first_name` = "Jesus"
@@ -205,4 +209,4 @@ UNION
 SELECT * FROM `users`
 WHERE `second_name` = "Lowe"
 ```
-MySQL will use indexes.
+MySQL will use index.
