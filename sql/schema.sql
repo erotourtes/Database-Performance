@@ -27,7 +27,8 @@ DROP TABLE IF EXISTS `performance`.`users` ;
 
 CREATE TABLE IF NOT EXISTS `performance`.`users` (
   `user_id` INT NOT NULL AUTO_INCREMENT,
-  `name` VARCHAR(55) NOT NULL,
+  `first_name` VARCHAR(55) NOT NULL,
+  `second_name` VARCHAR(55) NOT NULL,
   `email` VARCHAR(45) NULL,
   `password` VARCHAR(45) NULL,
   PRIMARY KEY (`user_id`),

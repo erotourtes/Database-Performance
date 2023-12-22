@@ -36,26 +36,3 @@ def initial_state_sql():
     # remove empty lines
     file = re.sub(r"\n\s*\n", "\n", file)
   return file
-
-class User:
-  def __init__(self, id, name, email, password):
-    self.user_id = id
-    self.name = name
-    self.email = email
-    self.password = password
-
-class Post:
-  def __init__(self, id, content, created_at, user_id):
-    self.post_id = id
-    self.message = content
-    self.created_at = created_at
-    self.user_id = user_id
-
-class Comment:
-  def __init__(self, id, content, created_at, user_id, post_id):
-    self.comment_id = id
-    self.message = content
-    self.created_at = created_at
-    self.user_id = user_id
-    self.post_id = post_id
-
