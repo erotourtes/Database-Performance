@@ -9,6 +9,8 @@
 [Кафедра обчислювальної техніки](https://comsys.kpi.ua/)  
 Київ
 
+## README Translation
+[Українська](https://github.com/erotourtes/Database-Performance/blob/main/README.ua.md)
 
 ## Performance in SQL (MySQL)
 First, we need to create a database and fill it with data. 
