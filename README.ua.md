@@ -76,9 +76,10 @@ WHERE `first_name` = "Jesus";
 ```
 | id | select_type | table | partitions | type | possible_keys | key | key_len | ref | rows | filtered | Extra |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1 | SIMPLE | users | NULL | <ins>ALL</ins> | NULL | NULL | NULL | NULL | <ins>9684</ins> | 10.00 | Using where |
+| 1 | SIMPLE | users | NULL | <ins>ALL</ins> | NULL | NULL | NULL | NULL | <ins>9684</ins> | 10.00 | Using where 
 
 Зверніть увагу, що type - ALL, а key - NULL. Це означає, що MySQL буде сканувати всі рядки в таблиці для пошуку відповідних рядків.
+
 ---
 
 ### Створення індексів
